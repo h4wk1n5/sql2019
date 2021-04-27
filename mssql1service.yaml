@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mssql1service
+  namespace: sql2019
 spec:
   selector:
     app: mssql1app

@@ -1,34 +1,59 @@
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
+  creationTimestamp: null
+  labels:
+    app: mssql1app
   name: mssql1deploy
+  namespace: sql2019
 spec:
+  progressDeadlineSeconds: 600
   replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: mssql1app
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
   template:
     metadata:
+      creationTimestamp: null
       labels:
         app: mssql1app
     spec:
-      terminationGracePeriodSeconds: 10
       containers:
-      - name: mssql1
-        image: microsoft/mssql-server-linux
-        ports:
-        - containerPort: 1433
-        securityContext:
-          privileged: true
-        env:
+      - env:
         - name: ACCEPT_EULA
           value: "Y"
         - name: SA_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: mssql
               key: SA_PASSWORD
+              name: mssql
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        imagePullPolicy: Always
+        name: mssql1
+        ports:
+        - containerPort: 1433
+          protocol: TCP
+        resources: {}
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
         volumeMounts:
-        - name: mssql1mount
-          mountPath: /var/opt/mssql
+        - mountPath: /var/opt/mssql
+          name: mssql1mount
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 10
       volumes:
       - name: mssql1mount
         persistentVolumeClaim:
           claimName: mssql1pvc
+status: {}
