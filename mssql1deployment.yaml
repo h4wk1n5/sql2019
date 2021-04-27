@@ -1,0 +1,34 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: mssql1deploy
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mssql1app
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mssql1
+        image: microsoft/mssql-server-linux
+        ports:
+        - containerPort: 1433
+        securityContext:
+          privileged: true
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: SA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mssql
+              key: SA_PASSWORD
+        volumeMounts:
+        - name: mssql1mount
+          mountPath: /var/opt/mssql
+      volumes:
+      - name: mssql1mount
+        persistentVolumeClaim:
+          claimName: mssql1pvc
